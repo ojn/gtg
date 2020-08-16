@@ -713,7 +713,6 @@ class TaskView(Gtk.TextView):
         """Unserialize and insert text in the buffer."""
 
         subtasks = []
-        text = self.format_update(text)
         text = text.splitlines()
 
         for index, line in enumerate(text):
@@ -849,30 +848,3 @@ class TaskView(Gtk.TextView):
 
         # Make sure subtasks can be deleted when removed in the text editor
         task.can_be_deleted = True
-
-    # --------------------------------------------------------------------------
-    # VERSIONING
-    # --------------------------------------------------------------------------
-    @classmethod
-    def format_update(cls, text: str) -> str:
-        """Update the content's format to the new version."""
-
-        # Unescape &quot;a and friends
-        text = html.unescape(text)
-
-        # Get rid of the content tag if it slip all the way there
-        text = text.replace('</content>', '')
-        text = text.replace('<content>', '')
-
-        # Tag tags arent' needed anymore
-        text = text.replace('</tag>', '')
-        text = text.replace('<tag>', '')
-
-        # New subtask style
-        text = text.replace('</subtask>', ' !}')
-        text = text.replace('<subtask>', '{! ')
-
-        # Get rid of the arrow and indent
-        text = text.replace('→', '')
-
-        return text
