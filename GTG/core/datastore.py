@@ -63,7 +63,6 @@ class DataStore():
         self.requester = requester.Requester(self, global_conf)
         self.tagfile_loaded = False
         self._tagstore = self.treefactory.get_tags_tree(self.requester)
-        self.load_tag_tree()
         self._backend_signals = BackendSignals()
         self.conf = global_conf
 
@@ -219,29 +218,36 @@ class DataStore():
         else:
             return None
 
-    def load_tag_tree(self):
+    def load_tag_tree(self, tag_tree):
         """
         Loads the tag tree from a xml file
         """
-        xmlstore = xml.open_file(TAGS_XMLFILE, TAG_XMLROOT)
 
-        for t in xmlstore.getroot():
-            tagname = t.get('name')
-            parent = t.get('parent')
+        for element in tag_tree.iter('tag'):
+            tid = element.get('id')
+            name = element.get('name')
+            color = element.get('color')
+            icon = element.get('icon')
+            parent = element.get('parent')
+            nonactionable = element.get('nonactionable')
 
-            tag_attr = {}
+            tag_attrs = {
+                'id': tid
+            }
 
-            for key, value in t.attrib.items():
-                if key not in ('name', 'parent'):
-                    tag_attr[key] = value
+            if color:
+                tag_attrs['color'] = color
 
-            if parent == SEARCH_TAG:
-                query = t.attrib.get('query')
-                tag = self.new_search_tag(tagname, query, tag_attr)
-            else:
-                tag = self.new_tag(tagname, tag_attr)
-                if parent:
-                    tag.set_parent(parent)
+            if icon:
+                tag_attrs['icon'] = icon
+
+            if nonactionable:
+                tag_attrs['nonactionable'] = nonactionable
+
+            tag = self.new_tag(name, tag_attrs)
+
+            if parent:
+                tag.set_parent(parent)
 
         self.tagfile_loaded = True
 
@@ -880,6 +886,7 @@ class FilteredDataStore(Borg):
                     'has_task',
                     'get_all_tasks',
                     'get_tasks_tree',
+                    'load_tag_tree',
                     'get_backend_mutex',
                     'flush_all_tasks',
                     'request_task_deletion']:
